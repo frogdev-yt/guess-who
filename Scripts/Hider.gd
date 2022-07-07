@@ -51,7 +51,7 @@ func _process(delta):
 			accel = defaultaccel
 			maxspeed = defaultmaxspeed
 		
-		if get_tree().is_network_server():
+		if get_tree().is_network_server() && networknode.entities.has("1"):
 			networknode.entities["1"]["position"] = global_position
 			networknode.entities["1"]["velx"] = velx
 			networknode.entities["1"]["vely"] = vely

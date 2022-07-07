@@ -113,9 +113,10 @@ func _server_disconnected():
 
 remote func playertoserver(playerprops):
 	var key = str(get_tree().get_rpc_sender_id())
-	entities[key]["position"] = playerprops["position"]
-	entities[key]["velx"] = playerprops["velx"]
-	entities[key]["vely"] = playerprops["vely"]
+	if entities.has(key):
+		entities[key]["position"] = playerprops["position"]
+		entities[key]["velx"] = playerprops["velx"]
+		entities[key]["vely"] = playerprops["vely"]
 
 # call as unreliable
 remote func servertoplayer(e):
@@ -128,6 +129,7 @@ remote func startgame():
 	get_tree().root.add_child(map.instance())
 	multiplayerconfigui.hide()
 	lobbyui.hide()
+	$CanvasLayer/Label.show()
 	gamestarted = true
 
 func updateentities():
@@ -182,6 +184,7 @@ func serverstartgame():
 	
 	# hide lobby ui
 	lobbyui.hide()
+	$CanvasLayer/Label.show()
 	
 	# pick random seeker
 	randomize()
@@ -217,6 +220,7 @@ func serverstartgame():
 remote func stopgame():
 	entities = {}
 	lobbyui.show()
+	$CanvasLayer/Label.hide()
 	gamestarted = false
 	get_tree().root.get_node("Map1").queue_free()
 
@@ -228,14 +232,15 @@ remote func newplayer(connected):
 
 remote func makeguess(pos):
 	for i in get_tree().root.get_node("Map1").get_children():
-		if i.get_node("CollisionShape2D").:
+		if pos.distance_to(i.global_position) < 10:
 			# if clicked on hider:
-			if str(name).find("NPC") == -1 && i.seeker == null:
+			if str(i.name).find("NPC") == -1 && i.get("seeker") == null:
 				entities[i.name].type = "seeker"
 				rpc("hidertoseeker",i.name)
 				get_tree().root.get_node("Map1").remove_child(get_tree().root.get_node("Map1/" + i.name))
 	
 	print("lol u suck")
+	# start 10 second timer
 
 remote func hidertoseeker(id):
 	# delete hider node, update function will instance new one of correct type automatically ( i Think)
@@ -246,10 +251,20 @@ remote func synctimer(timestr):
 
 func checkforgameend():
 	if hidersamount < 1:
-		stopgame()
-		rpc("stopgame")
+		seekerswin()
+		rpc("seekerswin")
 
 func _timerout():
 	if get_tree().is_network_server():
-		stopgame()
-		rpc("stopgame")
+		hiderswin()
+		rpc("hiderswin")
+
+remote func hiderswin():
+	stopgame()
+	$WinScreen/Panel/Label.text = "HIDERS WIN"
+	$WinScreen.show()
+
+remote func seekerswin():
+	stopgame()
+	$WinScreen/Panel/Label.text = "SEEKERS WIN"
+	$WinScreen.show()

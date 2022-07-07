@@ -54,9 +54,10 @@ func _process(delta):
 		if global_position.y > 10000:
 			global_position = Vector2.ZERO
 		
-		networknode.entities[name]["position"] = global_position
-		networknode.entities[name]["velx"] = velx
-		networknode.entities[name]["vely"] = vely
+		if networknode.entities.has(name):
+			networknode.entities[name]["position"] = global_position
+			networknode.entities[name]["velx"] = velx
+			networknode.entities[name]["vely"] = vely
 	
 	move_and_slide(Vector2(velx * timeconst,0))
 	colly = move_and_collide(Vector2(0,vely * delta * timeconst))
