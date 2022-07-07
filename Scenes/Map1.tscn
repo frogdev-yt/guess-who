@@ -1,0 +1,58 @@
+[gd_scene load_steps=8 format=2]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 860, 138 )
+
+[sub_resource type="QuadMesh" id=2]
+
+[sub_resource type="Gradient" id=3]
+colors = PoolColorArray( 0.698039, 0.615686, 0.505882, 1, 0.698039, 0.615686, 0.505882, 1 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 15, 543 )
+
+[sub_resource type="QuadMesh" id=6]
+
+[sub_resource type="GradientTexture" id=7]
+gradient = SubResource( 3 )
+
+[node name="Map1" type="Node2D"]
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2( 0, 900 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource( 1 )
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="Floor"]
+position = Vector2( 0, 241.5 )
+scale = Vector2( 3498, 759 )
+mesh = SubResource( 2 )
+texture = SubResource( 4 )
+
+[node name="WallR" type="StaticBody2D" parent="."]
+position = Vector2( 863, 495 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallR"]
+shape = SubResource( 5 )
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="WallR"]
+position = Vector2( 438, 0 )
+scale = Vector2( 906, 1086 )
+mesh = SubResource( 6 )
+texture = SubResource( 7 )
+
+[node name="WallL" type="StaticBody2D" parent="."]
+position = Vector2( -863, 495 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallL"]
+shape = SubResource( 5 )
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="WallL"]
+position = Vector2( -438, 0 )
+scale = Vector2( 906, 1086 )
+mesh = SubResource( 6 )
+texture = SubResource( 7 )

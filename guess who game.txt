@@ -1,0 +1,29 @@
+very simple game to test multiplayer, there are a bunch of ai square thingies walking around randomly in a 2d side scroller platformer scene
+there is one player who is an observer
+there are other players who are players
+when a player joins, they take control of an npc and pretend to be one of them
+the observer has to find players and click on them
+the players get extra points for making a sound alert like a fart, which alerts the observer of their location
+when a player is clicked on, they lose and become an observer
+when hosting a game, you get options for how many npcs there are, how fast the players and npcs move, how often the players can change form, etc.
+
+2 options for changing forms:
+A) npcs are all different colours and you can change your form to a different colour to throw off the observer
+B) you actually take control of a different npc and it makes a sound alert or something to indicate you have changed
+
+the observer cannot be harmed in any way, but there is a timer for the observer to find all the players. let's say 4 minutes
+when an observer (seeker) makes a wrong guess, they get a 10 second cooldown before they can click again. This means they get a maximum of 23 guesses
+
+NETWORKING:
+The map starts off as just a map
+NPCs are added (with different behaviour types, add later)
+Players are added
+Observers are added
+
+
+SCOPE CREEP LATER OPTIONS:
+you pick up players or npcs by clicking and dragging them
+the player has to time button presses to supress quivers of fear when being grabbed, like the little bar line thing that goes left to right and needs to be pressed at the right time
+to guess a player as an observer, you throw them into a bin
+if you guess wrong, you lose a life
+ez
