@@ -15,6 +15,7 @@ var seekeramount = 1
 var hidersamount = 0
 var guessdelay = 5
 var guessdist = 10
+var forcestart = false
 var connectedplayers = [1]
 
 # each key is a player id or an npc name, and has another dictionary
@@ -39,9 +40,10 @@ func _ready():
 	$Lobby/HostOptions/VBoxContainer/GuessDelay/TextEdit.connect("text_changed",self,"_on_guessdelay_changed")
 	$Lobby/HostOptions/VBoxContainer/GuessDist/TextEdit.connect("text_changed",self,"_on_guessdist_changed")
 	$Lobby/HostOptions/VBoxContainer/SeekerAmount/TextEdit.connect("text_changed",self,"_on_seekeramount_changed")
+	$Lobby/HostOptions/VBoxContainer/ForceStart/CheckBox.connect("toggled",self,"_on_forcestart_toggled")
 	$Timer.connect("timeout",self,"_timerout")
 
-func _process(delta):
+func _physics_process(delta):
 	updateentities()
 	
 	if get_tree().network_peer && get_tree().network_peer.get_connection_status() == get_tree().network_peer.CONNECTION_CONNECTED && get_tree().is_network_server():
@@ -57,7 +59,7 @@ func _process(delta):
 		
 		var timestr = timestr1 + ":" + timestr2
 		$CanvasLayer/Label.text = timestr
-		rpc("synctimer",timestr)
+		rpc_unreliable("synctimer",timestr)
 		
 		for i in guessdelays.keys():
 			if guessdelays[i] > 0:
@@ -118,8 +120,10 @@ func _on_joinserver_pressed():
 func _on_startgame_pressed():
 	if connectedplayers.size() > seekeramount:
 		serverstartgame()
+	elif forcestart:
+		printlog("Not enough players, but match force started!")
+		serverstartgame()
 	else:
-		# serverstartgame() for debug purpose
 		printlog("Not enough players to start match!")
 
 func _on_npcamount_changed(text):
@@ -136,6 +140,9 @@ func _on_guessdist_changed(text):
 
 func _on_seekeramount_changed(text):
 	seekeramount = int(text)
+
+func _on_forcestart_toggled(b):
+	forcestart = b
 
 func printlog(text : String):
 	$CanvasLayer/Log.text = text
