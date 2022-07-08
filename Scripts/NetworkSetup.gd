@@ -7,14 +7,20 @@ onready var map = load("res://Scenes/Map1.tscn")
 onready var npc = load("res://Entities/NPC.tscn")
 onready var hider = load("res://Entities/Hider.tscn")
 onready var seeker = load("res://Entities/Seeker.tscn")
+onready var popsound = load("res://Audio/pop.ogg")
+onready var buzzsound = load("res://Audio/wrongbuzz.ogg")
 
 var npcamount = 100
+var seekeramount = 1
 var hidersamount = 0
+var guessdelay = 5
+var guessdist = 10
 var connectedplayers = [1]
 
 # each key is a player id or an npc name, and has another dictionary
 # player id second dictionaries have type (which is hider or seeker), velocity and position
 var entities = {}
+var guessdelays = {}
 
 var gamestarted = false
 
@@ -27,20 +33,39 @@ func _ready():
 	get_tree().connect("server_disconnected", self, "_server_disconnected")
 	$MultiplayerConfig/VBoxContainer/CreateServer.connect("pressed",self,"_on_createserver_pressed")
 	$MultiplayerConfig/VBoxContainer/JoinServer.connect("pressed",self,"_on_joinserver_pressed")
-	$Lobby/Button.connect("pressed",self,"_on_startgame_pressed")
+	$Lobby/HostOptions/StartButton.connect("pressed",self,"_on_startgame_pressed")
+	$Lobby/HostOptions/VBoxContainer/NPCAmount/TextEdit.connect("text_changed",self,"_on_npcamount_changed")
+	$Lobby/HostOptions/VBoxContainer/TimeLimit/TextEdit.connect("text_changed",self,"_on_timelimit_changed")
+	$Lobby/HostOptions/VBoxContainer/GuessDelay/TextEdit.connect("text_changed",self,"_on_guessdelay_changed")
+	$Lobby/HostOptions/VBoxContainer/GuessDist/TextEdit.connect("text_changed",self,"_on_guessdist_changed")
+	$Lobby/HostOptions/VBoxContainer/SeekerAmount/TextEdit.connect("text_changed",self,"_on_seekeramount_changed")
 	$Timer.connect("timeout",self,"_timerout")
 
 func _process(delta):
 	updateentities()
 	
-	if get_tree().is_network_server():
+	if get_tree().network_peer && get_tree().network_peer.get_connection_status() == get_tree().network_peer.CONNECTION_CONNECTED && get_tree().is_network_server():
 		rpc_unreliable("servertoplayer",entities)
-		var timestr = str(floor($Timer.time_left/60)) + ":" + str(floor(fmod($Timer.time_left,60)))
+		
+		var timestr1 = str(floor($Timer.time_left/60))
+		if timestr1.length() < 2:
+			timestr1 = "0" + timestr1
+		
+		var timestr2 = str(floor(fmod($Timer.time_left,60)))
+		if timestr2.length() < 2:
+			timestr2 = "0" + timestr2
+		
+		var timestr = timestr1 + ":" + timestr2
 		$CanvasLayer/Label.text = timestr
 		rpc("synctimer",timestr)
+		
+		for i in guessdelays.keys():
+			if guessdelays[i] > 0:
+				guessdelays[i] -= delta
 
 func _player_connected(id):
 	print("Player " + str(id) + " connected")
+	printlog("Player " + str(id) + " connected")
 	
 	if !connectedplayers.has(id):
 		connectedplayers.append(id)
@@ -62,6 +87,7 @@ func _player_connected(id):
 
 func _player_disconnected(id):
 	print("Player " + str(id) + " disconnected")
+	printlog("Player " + str(id) + " disconnected")
 	connectedplayers.erase(id)
 	lobbyui.get_node("ItemList").items.erase(id)
 	
@@ -80,7 +106,7 @@ func _on_createserver_pressed():
 	Network.create_server()
 	multiplayerconfigui.hide()
 	lobbyui.show()
-	lobbyui.get_node("Button").show()
+	lobbyui.get_node("HostOptions").show()
 	
 	for i in connectedplayers:
 		lobbyui.get_node("ItemList").add_item(str(i))
@@ -90,26 +116,47 @@ func _on_joinserver_pressed():
 		Network.join_server(serveraddressbox.text)
 
 func _on_startgame_pressed():
-	if connectedplayers.size() > 1:
+	if connectedplayers.size() > seekeramount:
 		serverstartgame()
 	else:
-		serverstartgame()
-		print("not enough players to start game!")
+		# serverstartgame() for debug purpose
+		printlog("Not enough players to start match!")
+
+func _on_npcamount_changed(text):
+	npcamount = int(text)
+
+func _on_timelimit_changed(text):
+	$Timer.wait_time = float(text)
+
+func _on_guessdelay_changed(text):
+	guessdelay = float(text)
+
+func _on_guessdist_changed(text):
+	guessdist = float(text)
+
+func _on_seekeramount_changed(text):
+	seekeramount = int(text)
+
+func printlog(text : String):
+	$CanvasLayer/Log.text = text
 
 func _connected_to_server():
 	multiplayerconfigui.hide()
 	lobbyui.show()
 	
 	print("connected to server!")
+	printlog("Connected to server!")
 
 func _connection_failed():
 	print("connection failed :(")
+	printlog("Connection failed :(")
 
 func _server_disconnected():
 	stopgame()
 	lobbyui.hide()
 	multiplayerconfigui.show()
 	print("server disconnected")
+	printlog("Server disconnected")
 
 remote func playertoserver(playerprops):
 	var key = str(get_tree().get_rpc_sender_id())
@@ -186,12 +233,19 @@ func serverstartgame():
 	lobbyui.hide()
 	$CanvasLayer/Label.show()
 	
-	# pick random seeker
-	randomize()
-	var rannum = round(rand_range(0,connectedplayers.size() - 1))
-	var seekerpick = str(connectedplayers[rannum])
+	# pick random seekers
+	var seekerpicks = []
+	var notpicked = connectedplayers
 	
-	hidersamount = connectedplayers.size() - 1 # where 1 is seeker amount
+	for i in seekeramount:
+		randomize()
+		var rannum = round(rand_range(0,notpicked.size() - 1))
+		seekerpicks.append(str(connectedplayers[rannum]))
+		notpicked.erase(str(connectedplayers[rannum]))
+	
+	print(seekerpicks)
+	hidersamount = connectedplayers.size() - seekeramount
+	print("hidersamount is " + str(hidersamount))
 	
 	# add players into entities as hiders
 	for i in connectedplayers:
@@ -200,7 +254,7 @@ func serverstartgame():
 		entities[key]["position"] = Vector2(0,0)
 		entities[key]["velx"] = 0
 		entities[key]["vely"] = 0
-		if key == seekerpick:
+		if seekerpicks.has(key):
 			entities[key].type = "seeker"
 		else:
 			entities[key].type = "hider"
@@ -220,27 +274,69 @@ func serverstartgame():
 remote func stopgame():
 	entities = {}
 	lobbyui.show()
+	$Timer.stop()
 	$CanvasLayer/Label.hide()
 	gamestarted = false
 	get_tree().root.get_node("Map1").queue_free()
 
 remote func newplayer(connected):
 	connectedplayers = connected
-	print(connectedplayers)
 	for i in connectedplayers:
-		lobbyui.get_node("ItemList").add_item(str(i))
+		if !lobbyui.get_node("ItemList").items.has(str(i)):
+			lobbyui.get_node("ItemList").add_item(str(i))
 
 remote func makeguess(pos):
-	for i in get_tree().root.get_node("Map1").get_children():
-		if pos.distance_to(i.global_position) < 10:
-			# if clicked on hider:
-			if str(i.name).find("NPC") == -1 && i.get("seeker") == null:
-				entities[i.name].type = "seeker"
-				rpc("hidertoseeker",i.name)
-				get_tree().root.get_node("Map1").remove_child(get_tree().root.get_node("Map1/" + i.name))
 	
-	print("lol u suck")
-	# start 10 second timer
+	var id
+	print(get_tree().get_rpc_sender_id())
+	if get_tree().get_rpc_sender_id() != 0:
+		id = get_tree().get_rpc_sender_id()
+	else:
+		id = 1
+	
+	if guessdelays.has(str(id)) && guessdelays[str(id)] > 0:
+		# do not guess, delayed
+		print("Cannot guess right now, delayed!")
+		printlog("Cannot guess right now, delayed!")
+	else:
+		# guess
+		for i in get_tree().root.get_node("Map1").get_children():
+			if pos.distance_to(i.global_position) < guessdist:
+				# if clicked on hider:
+				if str(i.name).find("NPC") == -1 && i.get("seeker") == null:
+					if id == 1:
+						correctguess()
+					else:
+						rpc_id(id,"correctguess")
+					
+					entities[i.name].type = "seeker"
+					rpc("servertoplayer",entities)
+					rpc("hidertoseeker",i.name)
+					hidersamount -= 1
+					get_tree().root.get_node("Map1").remove_child(get_tree().root.get_node("Map1/" + i.name))
+					checkforgameend()
+					return
+		
+		if id == 1:
+			wrongguess()
+		else:
+			rpc_id(id,"wrongguess")
+		
+		guessdelays[str(id)] = guessdelay
+
+remote func taunt(pos):
+	$TauntPlayer.position = pos
+	$TauntPlayer.play()
+
+remote func wrongguess():
+	$Player.stream = buzzsound
+	$Player.play()
+	printlog("Guess missed!")
+
+remote func correctguess():
+	$Player.stream = popsound
+	$Player.play()
+	printlog("Guess was correct!")
 
 remote func hidertoseeker(id):
 	# delete hider node, update function will instance new one of correct type automatically ( i Think)

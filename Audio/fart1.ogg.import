@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/fart1.ogg-1e5c0b8fd91e3af8f76247975591c278.oggstr"
+
+[deps]
+
+source_file="res://Audio/fart1.ogg"
+dest_files=[ "res://.import/fart1.ogg-1e5c0b8fd91e3af8f76247975591c278.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

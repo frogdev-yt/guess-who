@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Scripts/NetworkSetup.gd" type="Script" id=1]
 [ext_resource path="res://Scenes/WinScreen.gd" type="Script" id=2]
+[ext_resource path="res://Audio/fart1.ogg" type="AudioStream" id=3]
+[ext_resource path="res://Audio/wrongbuzz.ogg" type="AudioStream" id=4]
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0.835294, 0.294118, 0.294118, 1 )
@@ -85,20 +87,128 @@ margin_top = -280.0
 margin_right = -89.0
 margin_bottom = 280.0
 
-[node name="Button" type="Button" parent="Lobby"]
+[node name="HostOptions" type="Control" parent="Lobby"]
 visible = false
+margin_right = 1920.0
+margin_bottom = 1080.0
+
+[node name="StartButton" type="Button" parent="Lobby/HostOptions"]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = 94.0
-margin_top = -54.0
-margin_right = 372.0
-margin_bottom = 54.0
+margin_left = 87.0
+margin_top = 40.0
+margin_right = 365.0
+margin_bottom = 148.0
 text = "Start Game"
 
+[node name="VBoxContainer" type="VBoxContainer" parent="Lobby/HostOptions"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = 113.0
+margin_top = -155.0
+margin_right = 333.0
+margin_bottom = -16.0
+
+[node name="NPCAmount" type="Control" parent="Lobby/HostOptions/VBoxContainer"]
+margin_right = 220.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Label" type="Label" parent="Lobby/HostOptions/VBoxContainer/NPCAmount"]
+margin_top = 7.0
+margin_right = 85.0
+margin_bottom = 21.0
+text = "NPC Amount:"
+
+[node name="TextEdit" type="LineEdit" parent="Lobby/HostOptions/VBoxContainer/NPCAmount"]
+margin_left = 110.0
+margin_right = 170.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 60, 30 )
+text = "100"
+
+[node name="TimeLimit" type="Control" parent="Lobby/HostOptions/VBoxContainer"]
+margin_top = 34.0
+margin_right = 220.0
+margin_bottom = 64.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Label" type="Label" parent="Lobby/HostOptions/VBoxContainer/TimeLimit"]
+margin_top = 7.0
+margin_right = 85.0
+margin_bottom = 21.0
+text = "Time Limit (s):"
+
+[node name="TextEdit" type="LineEdit" parent="Lobby/HostOptions/VBoxContainer/TimeLimit"]
+margin_left = 110.0
+margin_right = 170.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 60, 30 )
+text = "60"
+
+[node name="GuessDelay" type="Control" parent="Lobby/HostOptions/VBoxContainer"]
+margin_top = 68.0
+margin_right = 220.0
+margin_bottom = 98.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Label" type="Label" parent="Lobby/HostOptions/VBoxContainer/GuessDelay"]
+margin_top = 7.0
+margin_right = 85.0
+margin_bottom = 21.0
+text = "Guess Delay (s):"
+
+[node name="TextEdit" type="LineEdit" parent="Lobby/HostOptions/VBoxContainer/GuessDelay"]
+margin_left = 110.0
+margin_right = 170.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 60, 30 )
+text = "5"
+
+[node name="GuessDist" type="Control" parent="Lobby/HostOptions/VBoxContainer"]
+margin_top = 102.0
+margin_right = 220.0
+margin_bottom = 132.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Label" type="Label" parent="Lobby/HostOptions/VBoxContainer/GuessDist"]
+margin_top = 7.0
+margin_right = 85.0
+margin_bottom = 21.0
+text = "Guess Distance:"
+
+[node name="TextEdit" type="LineEdit" parent="Lobby/HostOptions/VBoxContainer/GuessDist"]
+margin_left = 110.0
+margin_right = 170.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 60, 30 )
+text = "10"
+
+[node name="SeekerAmount" type="Control" parent="Lobby/HostOptions/VBoxContainer"]
+margin_top = 136.0
+margin_right = 220.0
+margin_bottom = 166.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Label" type="Label" parent="Lobby/HostOptions/VBoxContainer/SeekerAmount"]
+margin_top = 7.0
+margin_right = 85.0
+margin_bottom = 21.0
+text = "Seeker Amount:"
+
+[node name="TextEdit" type="LineEdit" parent="Lobby/HostOptions/VBoxContainer/SeekerAmount"]
+margin_left = 110.0
+margin_right = 170.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 60, 30 )
+text = "1"
+
 [node name="Timer" type="Timer" parent="."]
-wait_time = 10.0
+wait_time = 60.0
 one_shot = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -113,6 +223,17 @@ margin_right = -11.0
 margin_bottom = 76.0
 rect_scale = Vector2( 3, 3 )
 text = "4:00"
+
+[node name="Log" type="Label" parent="CanvasLayer"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -960.0
+margin_top = -49.0
+margin_right = 960.0
+align = 1
+valign = 1
 
 [node name="WinScreen" type="Control" parent="."]
 visible = false
@@ -161,3 +282,9 @@ custom_styles/pressed = SubResource( 2 )
 custom_styles/focus = SubResource( 3 )
 custom_styles/normal = SubResource( 1 )
 text = "X"
+
+[node name="TauntPlayer" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 3 )
+
+[node name="Player" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 4 )
